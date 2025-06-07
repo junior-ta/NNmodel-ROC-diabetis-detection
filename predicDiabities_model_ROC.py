@@ -26,7 +26,7 @@ class PimaClassifier(nn.Module):
 
 
 def train_model():
-    dataset = np.loadtxt('datasets\diabetes_trainvalidate.csv', delimiter=',')  # 2d array rows,columns
+    dataset = np.loadtxt('dataset\diabetes_trainvalidate.csv', delimiter=',')  # 2d array rows,columns
 
     X = dataset[:, 0:8]  # select all columns, and the first 7 rows
     y = dataset[:, 8]  # select all columns and the last row
@@ -78,13 +78,76 @@ def train_model():
     fpr, tpr, thresholds = roc_curve(y_vali.numpy(), y_pred.numpy())  # converting back to numpy to avoid weaird issues
     roc_auc = roc_auc_score(y_vali.numpy(), y_pred.numpy())
 
-    display = RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=roc_auc, estimator_name='diabetes')
+    display = RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=roc_auc, name='diabetes')
     display.plot()
     plt.show()
 
     # Training done, saving my model's weights
     torch.save(model.state_dict(), "diabetes_pimamodel.pth")
 
+def mccv():
+    dataset = np.loadtxt('dataset\diabetes_trainvalidate.csv', delimiter=',')  # 2d array rows,columns
+
+    X = dataset[:, 0:8]  # select all columns, and the first 7 rows
+    y = dataset[:, 8]  # select all columns and the last row
+
+    # loading my model and printing it
+    model = PimaClassifier()
+
+    # preparing the model for training
+    loss_fn = nn.BCELoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+    n_splits = 10
+    metrics = {"accuracy":[],"ROCAUC":[]}
+
+    for i in range(n_splits):
+        # splitting my training dataset for training and validating
+        X_train, X_vali, y_train, y_vali = train_test_split(X, y, test_size=0.2, random_state=None)
+
+        # converting numpy's 64-bit floats to torch's 32-bits floats
+        X_train = torch.tensor(X_train, dtype=torch.float32)
+        X_vali = torch.tensor(X_vali, dtype=torch.float32)
+        y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
+        y_vali = torch.tensor(y_vali, dtype=torch.float32).reshape(-1, 1)
+
+        # training it
+        n_epochs = 100
+        batch_size = 10
+
+        for epoch in range(n_epochs):
+            for i in range(0, len(X_train), batch_size):
+                Xbatch = X_train[i:i + batch_size]
+                y_pred = model(Xbatch)
+                ybatch = y_train[i:i + batch_size]
+                loss = loss_fn(y_pred, ybatch)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+        # validating my model (also, getting probabilities for ROC curve plotting)
+        model.eval()
+        with torch.no_grad():
+            y_pred = model(X_vali)
+
+        accuracy = (y_pred.round() == y_vali).float().mean()
+        roc_auc = roc_auc_score(y_vali.numpy(), y_pred.numpy())
+        metrics.get("accuracy").append(accuracy)
+        metrics.get("ROCAUC").append(roc_auc)
+
+    meanA = np.mean(metrics.get("accuracy"))
+    stdA = np.std(metrics.get("accuracy"))
+    meanAUC = np.mean(metrics.get("ROCAUC"))
+    stdAUC = np.std(metrics.get("ROCAUC"))
+
+    print("_____Evaluating MCCV____")
+
+    print(f"Accuracy: [{metrics.get('accuracy')[:11]},...]")
+    print(f"ROC AUC: [{metrics.get('ROCAUC')[:11]},...]")
+
+    print(f"Mean Accuracy: {meanA:.3f} ± {stdA:.3f}")
+    print(f"Mean ROC Area under the curve: {meanAUC:.3f} ± {stdAUC:.3f}")
 
 if __name__ == "__main__":
     train_model()
+    mccv()
