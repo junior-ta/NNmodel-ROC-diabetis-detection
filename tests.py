@@ -1,10 +1,11 @@
 import numpy as np
 import torch
+from sklearn.metrics import roc_auc_score
 
-from model_ROC_diabetispred import PimaClassifier
+from predicDiabetesModel_ROC_MCCV import PimaClassifier
 
 # 2d array rows,columns
-dataset = np.loadtxt('datasets\diabetes_testing.csv', delimiter=',')
+dataset = np.loadtxt('dataset\diabetes_testing.csv', delimiter=',')
 
 X = dataset[:, 0:8]  # select all columns, and the first 7 rows
 y = dataset[:, 8]  # select all columns and the last row
@@ -25,7 +26,9 @@ with torch.no_grad():
     y_pred = model(X)
 
 accuracy = (y_pred.round() == y).float().mean()
-print(f"\n \n 1. my model's validating Accuracy is: {accuracy} \n")
+print(f"\n \n 1. achieved accuracy on this test is: {accuracy} \n")
+roc_auc = roc_auc_score(y.numpy(), y_pred.numpy())
+print(f"\n \n 2. achieved performance on this test is: {roc_auc} \n")
 
 # make class predictions with the model, using 0.5 as threshold
 predictions = (model(X) > 0.5).int()
