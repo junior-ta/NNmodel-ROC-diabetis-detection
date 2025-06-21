@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from sklearn.metrics import roc_auc_score
 
-from predicDiabetesModel_ROC_MCCV import PimaClassifier
+from MC_cross_validation import PimaClassifier
 
 # 2d array rows,columns
 dataset = np.loadtxt('dataset\diabetes_testing.csv', delimiter=',')
