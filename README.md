@@ -5,7 +5,7 @@
 
 This is what my mean ROC curve looks like
 
-![idealized error curves.png](idealized%20error%20curves.png)
+![mean roc curve.png](mean%20roc%20curve.png)
 
 
 Overfitting set in very early:
