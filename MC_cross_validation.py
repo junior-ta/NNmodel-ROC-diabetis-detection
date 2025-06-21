@@ -92,8 +92,9 @@ def mccv():
     X = dataset[:, 0:8]  # select all columns, and the first 7 rows
     y = dataset[:, 8]  # select all columns and the last row
 
-    n_folds = 10
-    metrics = {"accuracy":[],"ROCAUC":[]}
+    n_folds = 2
+    metrics = {"accuracy": [], "ROCAUC": [], "rfpr": [], "rtpr": [], "fpr": [], "tpr": [], "ppv": [], "npv": []
+               }
 
     for i in range(n_folds):
         # splitting my training dataset for training and validating
@@ -115,10 +116,10 @@ def mccv():
         optimizer = optim.Adam(model.parameters(), lr=0.001)
 
         # training iteration
-        n_epochs = 150
+        n_epochs = 60
         batch_size = 10
 
-        for epoch in n_epochs:
+        for epoch in range(n_epochs):
 
             loss_accumulator=0
 
@@ -171,7 +172,7 @@ def mccv():
         # plt.tight_layout()
         # plt.show()
 
-        accuracy = (y_pred.round() == y_vali).float().mean().numpy()
+        accuracy = (y_pred.round() == y_vali).float().mean()
         rfpr, rtpr, thresholds = roc_curve(y_vali.numpy(), y_pred.numpy())
         roc_auc = roc_auc_score(y_vali.numpy(), y_pred.numpy())
         metrics.get("accuracy").append(accuracy)

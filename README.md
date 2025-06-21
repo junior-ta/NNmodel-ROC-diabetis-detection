@@ -3,15 +3,24 @@
 --Accuracy: Calculated using a 0.5 threshold for my probabilities
 --data has not being normalized
 
-This is what my ROC curve looks like
+This is what my mean ROC curve looks like
 
-![roc curve.png](roc%20curve.png)
+![idealized error curves.png](idealized%20error%20curves.png)
+
+
+Overfitting set in very early:
+
+![idealized error curves.png](idealized%20error%20curves.png)
+
+    I need to use regularization to deal with this
 
 Using an MCCV, I achieved:
 
     Mean Accuracy: 0.761 ± 0.037
 
     Mean ROC Area under the curve: 0.812 ± 0.062
+
+![img.png](img.png)
 
 ==== TESTING RESULTS ====
 
